@@ -307,15 +307,6 @@ export default function LandingPage() {
                 <span className="bb-proto__num">01</span>
                 <h3>Sealed by math</h3>
               </div>
-              <pre className="bb-proto__code">
-                <b>commitment</b> = keccak256(abi.encode({"\n"}
-                {"  "}tenderId,{"\n"}
-                {"  "}bidder,{"      "}<i>{"// bound to msg.sender"}</i>{"\n"}
-                {"  "}amount,{"      "}<i>{"// USDC, 6 decimals"}</i>{"\n"}
-                {"  "}salt,{"        "}<i>{"// 32 random bytes"}</i>{"\n"}
-                {"  "}keccak256(docKey){"\n"}
-                ))
-              </pre>
               <p className="bb-proto__desc">
                 Change one digit and the hash no longer matches. Copy someone else&apos;s and it fails too.
               </p>

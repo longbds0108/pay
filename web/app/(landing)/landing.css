@@ -254,24 +254,21 @@
 .bb-proto__card:not(.bb-proto__card--feature) .bb-proto__desc { text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.35); }
 .bb-proto__card:nth-child(2)::after { animation-delay: -1.4s; }
 .bb-proto__card:nth-child(3)::after { animation-delay: -2.8s; }
-.bb-proto__card--feature { background: radial-gradient(circle at 85% 15%, rgba(63,145,255,.28), transparent 45%), linear-gradient(158deg, #2a2142 0%, #120d1e 72%); }
+/* Feature card: Hedgora coin artwork, anchored to the top so the whole coin shows (the wide card crops the
+   building at the bottom instead), darkened at the text corners (title top-left, copy bottom-left). */
+.bb-proto__card--feature {
+  background:
+    linear-gradient(to top, rgba(8,10,24,.88) 0%, rgba(8,10,24,.35) 38%, transparent 62%),
+    linear-gradient(100deg, rgba(8,10,24,.7) 0%, rgba(8,10,24,.15) 45%, transparent 70%),
+    image-set(url("/landing/sealed-coin.webp") type("image/webp"), url("/landing/sealed-coin.jpg") type("image/jpeg")) 50% 0% / cover no-repeat,
+    #0d1430;
+}
+.bb-proto__card--feature h3,
+.bb-proto__card--feature .bb-proto__desc { text-shadow: 0 1px 3px rgba(0,0,0,.55), 0 0 16px rgba(0,0,0,.35); }
 .bb-proto__top { display: flex; align-items: baseline; gap: 14px; }
 .bb-proto__num { color: rgba(255,255,255,.7); font: .72rem var(--mono); }
 .bb-proto__card h3 { font-size: clamp(1.5rem, 2vw, 2.1rem); font-weight: 500; line-height: 1.04; letter-spacing: -.02em; }
 .bb-proto__desc { margin-top: auto; padding-top: 24px; max-width: 34ch; color: rgba(255,255,255,.88); font-size: .94rem; line-height: 1.5; }
-.bb-proto__code {
-  margin-top: 28px;
-  padding: 18px 20px;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px;
-  background: rgba(8,7,14,.55);
-  color: #cfe2ff;
-  font: .82rem/1.75 ui-monospace, SFMono-Regular, Menlo, monospace;
-  overflow-x: auto;
-  white-space: pre;
-}
-.bb-proto__code i { color: #8e8597; font-style: normal; }
-.bb-proto__code b { color: #e8e3d5; font-weight: 500; }
 @keyframes bb-sheen { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
 .bb-proto__infra { max-width: 1320px; margin: 58px auto 0; display: grid; grid-template-columns: auto 1fr; gap: 26px 56px; align-items: center; }
 .bb-proto__infra-lead { max-width: 30ch; color: #4a4650; line-height: 1.5; }
@@ -515,6 +512,15 @@
   .bb-proto { padding: 84px 18px 96px; }
   .bb-proto__grid { grid-template-columns: 1fr; }
   .bb-proto__card, .bb-proto__card--feature { grid-column: auto; min-height: 240px; }
+  /* Narrow card: the coin sits behind both text blocks, so darken top and bottom bands. */
+  .bb-proto__card--feature {
+    min-height: 300px;
+    background:
+      linear-gradient(to bottom, rgba(8,10,24,.78) 0%, rgba(8,10,24,.2) 30%, transparent 45%),
+      linear-gradient(to top, rgba(8,10,24,.92) 0%, rgba(8,10,24,.55) 34%, transparent 58%),
+      image-set(url("/landing/sealed-coin.webp") type("image/webp"), url("/landing/sealed-coin.jpg") type("image/jpeg")) 62% 0% / cover no-repeat,
+      #0d1430;
+  }
   .bb-sec { padding: 54px 16px 96px; }
   .bb-sec__panel { padding: 26px 20px; border-radius: 24px; }
   .bb-sec__card { padding: 18px; }
