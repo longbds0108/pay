@@ -15,7 +15,7 @@ import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldError, Input, Label } from "@/components/ui/input";
+import { AmountInput, FieldError, Label } from "@/components/ui/input";
 import { computeCommitment, randomBytes32 } from "@/lib/commitment";
 import { blindBidAddress, TenderState } from "@/lib/contracts";
 import { encryptDocument, generateDocKey } from "@/lib/crypto";
@@ -197,14 +197,12 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Bid amount (USDC)</Label>
-              <Input
+              <AmountInput
                 id="amount"
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder="Your price, in USDC"
+                placeholder="0.00"
                 value={amountInput}
-                onChange={(e) => {
-                  setAmountInput(e.target.value);
+                onChange={(v) => {
+                  setAmountInput(v);
                   invalidate();
                 }}
               />

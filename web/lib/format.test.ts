@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBudget, formatDuration, formatNativeWei, formatTokenFloor, formatUsdc6, isValidAmountInput, parseNativeWei, parseUsdc6 } from "./format";
+import { formatBudget, formatDuration, formatNativeWei, formatTokenFloor, formatUsdc6, groupAmountInput, isValidAmountInput, parseNativeWei, parseUsdc6 } from "./format";
 
 describe("money formatting", () => {
   it("formats 6-decimal USDC", () => {
@@ -51,5 +51,26 @@ describe("token amounts", () => {
     expect(formatTokenFloor(100_000_000n, 8, 8, 0)).toBe("1");
     expect(formatTokenFloor(150_000_000n, 8, 8, 0)).toBe("1.5");
     expect(formatTokenFloor(0n, 8, 8, 0)).toBe("0");
+  });
+});
+
+describe("amount input grouping", () => {
+  it("groups thousands while typing", () => {
+    expect(groupAmountInput("10000000", 6)).toBe("10,000,000");
+    expect(groupAmountInput("1,0000", 6)).toBe("10,000");
+    expect(groupAmountInput("1234.", 6)).toBe("1,234.");
+    expect(groupAmountInput("1234.5", 6)).toBe("1,234.5");
+    expect(groupAmountInput("", 6)).toBe("");
+  });
+  it("cleans input and caps decimals", () => {
+    expect(groupAmountInput("007", 6)).toBe("7");
+    expect(groupAmountInput(".5", 6)).toBe("0.5");
+    expect(groupAmountInput("$1 200.1234567", 6)).toBe("1,200.123456");
+    expect(groupAmountInput("1.2.3", 6)).toBe("1.23");
+    expect(groupAmountInput("abc", 6)).toBe("");
+  });
+  it("stays parseable", () => {
+    expect(parseUsdc6(groupAmountInput("7500000", 6))).toBe(7_500_000_000_000n);
+    expect(isValidAmountInput(groupAmountInput("10000.25", 6))).toBe(true);
   });
 });

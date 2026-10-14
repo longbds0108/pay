@@ -109,3 +109,20 @@ export function formatTokenFloor(value: bigint, decimals: number, maxFraction = 
   while (fraction.length > minFraction && fraction.endsWith("0")) fraction = fraction.slice(0, -1);
   return `${whole.toLocaleString("en-US")}${fraction ? `.${fraction}` : ""}`;
 }
+
+/**
+ * Live formatting for amount inputs: keeps digits and one dot, caps decimals, strips leading zeros and groups
+ * thousands ("10000000" → "10,000,000"). A trailing dot is kept while typing ("1234." → "1,234.").
+ * The result still parses with parseUsdc6 / isValidAmountInput (commas are stripped there).
+ */
+export function groupAmountInput(raw: string, maxDecimals: number): string {
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  if (!cleaned) return "";
+  const dot = cleaned.indexOf(".");
+  let int = dot === -1 ? cleaned : cleaned.slice(0, dot);
+  const frac = dot === -1 ? undefined : cleaned.slice(dot + 1).replace(/\./g, "").slice(0, maxDecimals);
+  int = int.replace(/^0+(?=\d)/, "");
+  if (int === "" && frac !== undefined) int = "0";
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return frac === undefined || maxDecimals === 0 ? grouped : `${grouped}.${frac}`;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2 } from "lucide-react";
+import { Clock, Info, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
+import { AmountInput, CharCount, FieldError, Input, Label, Textarea } from "@/components/ui/input";
 import { SelectMenu } from "@/components/ui/select";
 import { MIN_REVEAL_WINDOW_S, blindBidMarketAbi } from "@/lib/contracts";
 import { formatDateTime, formatDuration, isValidAmountInput, parseNativeWei, parseUsdc6 } from "@/lib/format";
@@ -22,18 +22,22 @@ import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
 import { uploadJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
 import { loadProfile } from "@/lib/profile";
+import { cn } from "@/lib/utils";
 
+
+/** Field limits — enforced by the inputs (maxLength + counter) and by validation. */
+const LIMITS = { title: 120, description: 5000, eligibility: 2000, criteria: 2000 } as const;
 
 const amount = (label: string, decimals = 6) =>
   z.string().refine((v) => isValidAmountInput(v, decimals), `${label}: enter a positive amount (max ${decimals} decimals)`);
 
 const formSchema = z
   .object({
-    title: z.string().trim().min(3, "At least 3 characters").max(120),
+    title: z.string().trim().min(3, "At least 3 characters").max(LIMITS.title),
     category: z.enum(CATEGORIES),
-    description: z.string().trim().min(10, "At least 10 characters").max(5000),
-    eligibility: z.string().max(2000),
-    criteria: z.string().max(2000),
+    description: z.string().trim().min(10, "At least 10 characters").max(LIMITS.description),
+    eligibility: z.string().max(LIMITS.eligibility),
+    criteria: z.string().max(LIMITS.criteria),
     budgetMin: amount("Minimum budget"),
     budgetMax: amount("Maximum budget"),
     submissionDeadline: z.string().min(1, "Required"),
@@ -163,8 +167,11 @@ function CreateTenderForm() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="Tender title" {...register("title")} />
+              <div className="flex items-baseline justify-between gap-2">
+                <Label htmlFor="title">Title</Label>
+                <CharCount value={watch("title")} max={LIMITS.title} />
+              </div>
+              <Input id="title" placeholder="Tender title" maxLength={LIMITS.title} {...register("title")} />
               <FieldError>{errors.title?.message}</FieldError>
             </div>
             <div className="space-y-2">
@@ -183,20 +190,41 @@ function CreateTenderForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Scope of work</Label>
-              <Textarea id="description" rows={6} {...register("description")} />
+              <div className="flex items-baseline justify-between gap-2">
+                <Label htmlFor="description">Scope of work</Label>
+                <CharCount value={watch("description")} max={LIMITS.description} />
+              </div>
+              <Textarea
+                id="description"
+                rows={5}
+                maxLength={LIMITS.description}
+                placeholder="Deliverables, timeline, location"
+                {...register("description")}
+              />
               <FieldError>{errors.description?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="eligibility">Eligibility requirements</Label>
-              <Textarea id="eligibility" rows={3} placeholder="Licences, experience, certifications…" {...register("eligibility")} />
+              <div className="flex items-baseline justify-between gap-2">
+                <Label htmlFor="eligibility">Eligibility requirements</Label>
+                <CharCount value={watch("eligibility")} max={LIMITS.eligibility} />
+              </div>
+              <Textarea
+                id="eligibility"
+                rows={3}
+                maxLength={LIMITS.eligibility}
+                placeholder="Licences, experience"
+                {...register("eligibility")}
+              />
               <p className="text-xs text-muted-foreground">
                 Not verified on-chain in this version — you exclude ineligible bids during evaluation.
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="criteria">Evaluation criteria</Label>
-              <Textarea id="criteria" rows={3} placeholder="How bids will be compared" {...register("criteria")} />
+              <div className="flex items-baseline justify-between gap-2">
+                <Label htmlFor="criteria">Evaluation criteria</Label>
+                <CharCount value={watch("criteria")} max={LIMITS.criteria} />
+              </div>
+              <Textarea id="criteria" rows={3} maxLength={LIMITS.criteria} placeholder="How bids are compared" {...register("criteria")} />
             </div>
           </CardContent>
         </Card>
@@ -209,30 +237,50 @@ function CreateTenderForm() {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="budgetMin">Minimum budget (USDC)</Label>
-              <Input id="budgetMin" inputMode="decimal" placeholder="Minimum, in USDC" {...register("budgetMin")} />
+              <Controller
+                name="budgetMin"
+                control={form.control}
+                render={({ field }) => (
+                  <AmountInput id="budgetMin" placeholder="0.00" decimals={6} {...field} />
+                )}
+              />
               <FieldError>{errors.budgetMin?.message}</FieldError>
             </div>
             <div className="space-y-2">
               <Label htmlFor="budgetMax">Maximum budget (USDC)</Label>
-              <Input id="budgetMax" inputMode="decimal" placeholder="Maximum, in USDC" {...register("budgetMax")} />
+              <Controller
+                name="budgetMax"
+                control={form.control}
+                render={({ field }) => (
+                  <AmountInput id="budgetMax" placeholder="0.00" decimals={6} {...field} />
+                )}
+              />
               <FieldError>{errors.budgetMax?.message}</FieldError>
             </div>
             <div className="space-y-2">
               <Label htmlFor="submissionDeadline">Submission deadline</Label>
               <Input id="submissionDeadline" type="datetime-local" lang="en-US" {...register("submissionDeadline")} />
               <DatePreview unix={sub} />
+              <DeadlineCountdown unix={sub} now={chainNow} label="Bidding closes in" />
               <FieldError>{errors.submissionDeadline?.message}</FieldError>
             </div>
             <div className="space-y-2">
               <Label htmlFor="revealDeadline">Reveal deadline</Label>
               <Input id="revealDeadline" type="datetime-local" lang="en-US" {...register("revealDeadline")} />
               <DatePreview unix={rev} />
+              <DeadlineCountdown unix={rev} now={chainNow} label="Reveal ends in" />
               <FieldError>{errors.revealDeadline?.message}</FieldError>
               {rev > sub && <p className="text-xs text-muted-foreground">Reveal window: {formatDuration(rev - sub)}</p>}
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="bidBond">Bid bond (USDC, optional)</Label>
-              <Input id="bidBond" inputMode="decimal" placeholder="0 for no bond" {...register("bidBond")} />
+              <Controller
+                name="bidBond"
+                control={form.control}
+                render={({ field }) => (
+                  <AmountInput id="bidBond" placeholder="0 for no bond" decimals={6} {...field} />
+                )}
+              />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">
                 Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Hedgora
@@ -273,4 +321,33 @@ function CreateTenderForm() {
 function DatePreview({ unix }: { unix: number }) {
   if (!unix) return null;
   return <p className="text-xs text-muted-foreground">{formatDateTime(unix)}</p>;
+}
+
+/** Live time left until a chosen deadline, measured on chain time (what the contract enforces). */
+function DeadlineCountdown({ unix, now, label }: { unix: number; now: number | undefined; label: string }) {
+  if (!unix) return null;
+  if (now === undefined) return <p className="text-xs text-muted-foreground">Syncing chain time…</p>;
+  const left = unix - now;
+  return (
+    <p className={cn("flex items-center gap-1.5 text-xs", left > 0 ? "text-foreground-soft" : "text-destructive")}>
+      <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+      {left > 0 ? (
+        <span>
+          {label} <span className="font-medium tabular-nums">{formatCountdown(left)}</span>
+          <span className="text-muted-foreground"> · chain time</span>
+        </span>
+      ) : (
+        <span>Already passed on chain time — pick a later time.</span>
+      )}
+    </p>
+  );
+}
+
+/** "6d 23h 59m 08s": always down to the second, so the countdown visibly ticks with chain time. */
+function formatCountdown(total: number): string {
+  const d = Math.floor(total / 86_400);
+  const h = Math.floor((total % 86_400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = String(Math.floor(total % 60)).padStart(2, "0");
+  return d > 0 ? `${d}d ${h}h ${m}m ${sec}s` : h > 0 ? `${h}h ${m}m ${sec}s` : `${m}m ${sec}s`;
 }

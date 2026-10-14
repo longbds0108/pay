@@ -207,11 +207,11 @@ export default function LandingPage() {
           <div className="bb-hero__copy">
             <p className="bb-kicker js-rise">SEALED-BID TENDERS · {NETWORK_NAME.toUpperCase()}</p>
             <h1 className="js-rise">
-              Bid in public.
+              Bid in public
               <br />
               Price in
               <br />
-              private.
+              private
             </h1>
             <p className="bb-hero__body js-rise d1">
               Publish a public tender. Any wallet except the buyer can submit a bid, and every price stays a sealed hash
@@ -375,9 +375,9 @@ export default function LandingPage() {
               </span>
               <span className="bb-sec__kicker">Safe by design</span>
               <h2 className="bb-sec__title">
-                Your price stays yours.
+                Your price stays yours
                 <br />
-                Until the deadline says otherwise.
+                Until the deadline says otherwise
               </h2>
               <p className="bb-sec__body">
                 Your amount, salt and document key never leave your browser before you reveal. Only the hash goes on-chain
